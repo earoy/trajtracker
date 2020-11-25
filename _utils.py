@@ -164,15 +164,18 @@ def _is_rgb(value, accept_single_num=False, none_allowed=False):
         return value, True
 
     if accept_single_num and isinstance(value, int) and 0 <= value < 2**24:
+        print(12)
         return (int(np.floor(value / 2 ** 16)), int(np.floor(value / 256)) % 256, value % 256), True
 
     if not isinstance(value, tuple):
+        print(13)
         return None, False
     
     if len(value) != 3 or \
             not isinstance(value[0], int) or not (0 <= value[0] < 256) or \
             not isinstance(value[1], int) or not (0 <= value[1] < 256) or \
             not isinstance(value[2], int) or not (0 <= value[2] < 256):
+        print(14)
         return None, False
 
     return value, True

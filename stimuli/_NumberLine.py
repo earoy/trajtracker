@@ -48,7 +48,7 @@ class NumberLine(ttrk.TTrkObject, ttrk.events.OnsetOffsetObj):
     def __init__(self, position, line_length, max_value, min_value=0,
                  orientation=Orientation.Horizontal,
                  line_width=1, line_colour=None, end_tick_height=None, feedback_stimuli=(),
-                 visible=True):
+                 visible=True, ranges=False):
         """
         Constructor - invoked when you create a new object by writing NumberLine()
 
@@ -93,7 +93,7 @@ class NumberLine(ttrk.TTrkObject, ttrk.events.OnsetOffsetObj):
         self.end_tick_height = end_tick_height
 
         #-- Visual properties of the text labels at the ends of the line
-        self.show_labels(visible=False)
+        self.show_labels(visible=False, ranges=False)
 
         #-- Mid-of-line ticks
 
@@ -120,6 +120,7 @@ class NumberLine(ttrk.TTrkObject, ttrk.events.OnsetOffsetObj):
         self._target_pointer_offset = (0, 0)
 
         self.visible = visible
+        self.ranges = ranges
 
         self._visual_objects = {}
 
@@ -129,7 +130,7 @@ class NumberLine(ttrk.TTrkObject, ttrk.events.OnsetOffsetObj):
 
     #-----------------------------------------------------------------------------------
     def show_labels(self, visible=True, box_size=None, font_name=None, font_size=None, font_colour=None, offset=(0, 0),
-                    text_min=None, text_max=None):
+                    text_min=None, text_max=None, ranges = False):
         """
         Determine appearance of the two text labels at the ends of the line
 
@@ -159,6 +160,7 @@ class NumberLine(ttrk.TTrkObject, ttrk.events.OnsetOffsetObj):
         self.labels_offset = offset
         self.label_min_text = text_min
         self.label_max_text = text_max
+        self.labels_range = ranges
 
 
     #--------------------------------------------------------------
@@ -352,27 +354,48 @@ class NumberLine(ttrk.TTrkObject, ttrk.events.OnsetOffsetObj):
     # Text labels - one at each end of the line
     #
     def _prepare_labels(self):
+
+        
         dx = self._labels_offset_x
         dy = self._labels_offset_y
 
-        min_text = str(self._min_value) if self._label_min_text is None else self._label_min_text
-        min_pos = self._main_line_start()
-        min_pos = (min_pos[0] + dx, min_pos[1] + dy)
-        min_box = xpy.stimuli.TextBox(text=min_text, size=self._labels_box_size, position=min_pos,
+        if self._labels_range:
+            start_point = (-self._line_length/2,0)
+            delta = self._line_length/self.max_value
+            for i in range(self._max_value+1):
+                val = i
+                val_text = str(val)
+                pos = (start_point[0] + delta*i + dx, start_point[1] + dy)
+                val_box = xpy.stimuli.TextBox(text=val_text, size=self._labels_box_size, position=pos,
                                       text_font=self._labels_font_name, text_colour=self._labels_font_colour,
-                                      text_size=self._labels_font_size, text_justification=1)  # 1=center
-        min_box.preload()
+                                      text_size=self._labels_font_size, text_justification=1)
+                val_box.preload()
+                val_box_id = 'val_box'+val_text
+                self._visual_objects[val_box_id] = val_box
 
-        max_text = str(self._max_value) if self._label_max_text is None else self._label_max_text
-        max_pos = self._main_line_end()
-        max_pos = (max_pos[0] + dx, max_pos[1] + dy)
-        max_box = xpy.stimuli.TextBox(text=max_text, size=self._labels_box_size, position=max_pos,
-                                      text_font=self._labels_font_name, text_colour=self._labels_font_colour,
-                                      text_size=self._labels_font_size, text_justification=1)  # 1=center
-        max_box.preload()
 
-        self._visual_objects['label_min'] = min_box
-        self._visual_objects['label_max'] = max_box
+        else:
+
+            min_text = str(self._min_value) if self._label_min_text is None else self._label_min_text
+            min_pos = self._main_line_start()
+            min_pos = (min_pos[0] + dx, min_pos[1] + dy)
+            min_box = xpy.stimuli.TextBox(text=min_text, size=self._labels_box_size, position=min_pos,
+                                          text_font=self._labels_font_name, text_colour=self._labels_font_colour,
+                                          text_size=self._labels_font_size, text_justification=1)  # 1=center
+            min_box.preload()
+
+            max_text = str(self._max_value) if self._label_max_text is None else self._label_max_text
+            max_pos = self._main_line_end()
+            max_pos = (max_pos[0] + dx, max_pos[1] + dy)
+            max_box = xpy.stimuli.TextBox(text=max_text, size=self._labels_box_size, position=max_pos,
+                                          text_font=self._labels_font_name, text_colour=self._labels_font_colour,
+                                          text_size=self._labels_font_size, text_justification=1)  # 1=center
+            max_box.preload()
+
+            print(min_pos,max_pos)
+
+            self._visual_objects['label_min'] = min_box
+            self._visual_objects['label_max'] = max_box
 
         return
 
@@ -852,6 +875,19 @@ class NumberLine(ttrk.TTrkObject, ttrk.events.OnsetOffsetObj):
 
         self._labels_visible = value
         self._log_property_changed("labels_visible")
+
+     #-----------------------------------------------------------
+    @property
+    def labels_range(self):
+        """Whether the end-of-line labels are visible or not (boolean)"""
+        return self._labels_range
+
+    @labels_range.setter
+    def labels_range(self, value):
+        _u.validate_attr_type(self, "labels_range", value, bool)
+
+        self._labels_range = value
+        self._log_property_changed("labels_range")
 
     #-----------------------------------------------------------
     @property

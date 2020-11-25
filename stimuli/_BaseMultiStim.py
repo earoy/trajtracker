@@ -26,6 +26,7 @@ import numpy as np
 from operator import itemgetter
 
 from expyriment.misc.geometry import XYPoint
+from expyriment.misc._colour import Colour
 
 import trajtracker as ttrk
 # noinspection PyProtectedMember
@@ -503,13 +504,22 @@ class BaseMultiStim(ttrk.TTrkObject):
 
         multiple_values = False
 
+        #convert CSV input string to expyriment colour object
+        if prop_type == 'RGB' and type(value[0])== str:
+            temp = ()
+            for i in value:
+                temp = temp + (int(i),)
+           
+            newValue = Colour(temp)
+            value = newValue
+
         if value is None and not allow_none:
                 raise ttrk.TypeError("{:}.{:} cannot be set to None".format(_u.get_type_name(self), prop_name))
 
         if value is not None:
 
             multiple_values = self._is_multiple_values(value, prop_type)
-            if multiple_values:
+            if multiple_values and (prop_type != 'RGB'):
                 for v in value:
                     _u.validate_attr_type(self, prop_name, v, prop_type)
                 value = list(value)

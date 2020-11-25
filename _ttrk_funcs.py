@@ -44,15 +44,19 @@ def log_write(msg, print_to_console=False):
 
 
 #-------------------------------------------------
-def initialize():
+def initialize(colour=False):
     """
     Initialize TrajTracker; and initialize Expyriment by calling
     `expyriment.control.initialize() <http://docs.expyriment.org/expyriment.control.html>`_
     
     :return: Expyriment's `Experiment <http://docs.expyriment.org/expyriment.design.Experiment.html>`_ object 
     """
+    if colour:
+        exp = xpy.design.Experiment(background_colour= colour)
+    else:
+        exp = xpy.design.Experiment(background_colour= (0,0,0))
 
-    exp = xpy.control.initialize()
+    xpy.control.initialize(exp)
     ttrk.env.mouse = ttrk.io.Mouse(exp.mouse)
 
     return exp

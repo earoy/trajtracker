@@ -43,7 +43,8 @@ def parse_rgb(s):
     if re.match("^\((.*)\)$", s) is not None:
         s = s[1:-1]
 
-    m = re.match("\s*(\d+)\s*:\s*(\d+)\s*:\s*(\d+)\s*", s)
+    m = re.match('\s*(\d+)\s*:\s*(\d+)\s*:\s*(\d+)\s*', s)
+
     if m is None:
         raise ttrk.ValueError("Invalid RGB format: {:}".format(orig_s))
 
